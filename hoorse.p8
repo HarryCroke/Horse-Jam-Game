@@ -18,9 +18,11 @@ function _init()
     x_position = 0
     x_velocity = 1.5
 
+    run_button = 4
+
 end
 
-function _update()
+function stretch_input()
     if(btn(2)) then
         length = mid(min_length, length + 1.5, max_length) 
     elseif(btn(3)) then
@@ -32,7 +34,24 @@ function _update()
         height = mid(min_height, height - 1.5, max_height) 
         length = mid(min_length, length - 1.5, max_length) 
     end
+end
 
+function run_input()
+    if run_button == 4 and btnp(4) then
+        x_velocity += 1
+        run_button = 5
+    elseif run_button == 5 and btnp(5) then
+        x_velocity += 1
+        run_button = 4
+    end
+
+    x_velocity = mid(0, x_velocity-0.2, 10)
+end
+
+function _update()
+
+    stretch_input()
+    run_input()
     height = mid(min_height, height + y_velocity, max_height) 
     if(height != max_height) then
         y_velocity += gravity
@@ -81,6 +100,7 @@ function _draw()
     cls(1)
     draw_horse()
     map(0, 0, x_position, 0, 32, 32)
+    print(x_velocity)
     
 end
 
