@@ -3,32 +3,52 @@ version 42
 __lua__
 
 function _init()
-    height = 0
+    length = 0
+    height = 40
+    max_height = 40
+    min_height = 20
+    max_length = 40
+    min_length = 0
+    gravity = 0.015
+    y_velocity = 0
+
 end
 
 function _update()
     if(btn(2)) then
-        height += 1
+        length = mid(min_length, length + 1.5, max_length) 
+    elseif(btn(3)) then
+        length = mid(min_length, length - 1.5, max_length) 
+    elseif(btn(1)) then
+        height = mid(min_height, height + 1.5, max_height) 
+        length = mid(min_length, length + 1.5, max_length) 
+    elseif(btn(0)) and length > min_length then
+        height = mid(min_height, height - 1.5, max_height) 
+        length = mid(min_length, length - 1.5, max_length) 
     end
-    if(btn(3)) then
-        height -= 1
+
+    height = mid(min_height, height + y_velocity, max_height) 
+    if(height != max_height) then
+        y_velocity += gravity
+    else 
+        y_velocity = 0
     end
 end
 
 function draw_horse()
     --spr(1, 4, 48, 1, 2)
-    spr(1, 4, 40, 2, 2)
-    for i = 0, height-1 do
-        spr(3, 12, 48-i, 1, 1)
+    spr(1, 4, height, 2, 2)
+    for i = 0, length do
+        spr(3, 12, height + 8 -i, 1, 1)
         --print(i)
     end
     
-    --spr(1, 4, 48-height-7, 2, 1)
-    spr(19, 12, 48-height-7, 1, 1) -- Head
+    --spr(1, 4, 48-length-7, 2, 1)
+    spr(19, 12, height+1-length, 1, 1) -- Head
 end
 
 function _draw()
-    poke(0x5f2c, 3) -- 64x64
+    --poke(0x5f2c, 3) -- 64x64
     cls()
     draw_horse()
 end
