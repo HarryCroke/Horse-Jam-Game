@@ -25,6 +25,30 @@ function _init()
     run_button = 4
 
     timer = 0
+
+    items = {}
+
+    debug = ""
+
+    -- item = {
+    --     x = 0,
+    --     y = 0,
+    --     spr = 0,
+    --     type = "null",
+    --     effect = 1,
+    --     w = 4,
+    --     h = 4
+    -- }
+
+    horse = {x = 4, y = 40, w = 16, h = 16}
+
+    carrot = {spr = 12, effect = "perm", effect = 0.5, w = 2, h = 4}
+    apple = {spr = 13, effect = "temp", effect = 1, w = 2, h = 4}
+    cash = {spr = 14, effect = "points", effect = 0.5, w = 2, h = 4}
+
+    create_item(carrot, 40)
+    create_item(apple, 30)
+    create_item(cash, 25)
 end
 
 function stretch_input()
@@ -39,18 +63,48 @@ function stretch_input()
         height = mid(min_height, height - 1.5, max_height) 
         length = mid(min_length, length - 1.5, max_length) 
     end
+
+    horse.y = height + 16
+    horse.h = -13 - length
 end
 
 function accelerate()
     x_velocity += x_acceleration
-    
-
     x_velocity = mid(0, x_velocity, max_x_velocity)
+end
+
+-- function create_item(nx, ny, nspr, ntype, neffect)
+--     add(item{nx, ny, nspr, ntype, neffect})
+-- end   
+
+function create_item(nitem, ny)
+    nitem.y = ny
+    nitem.x = 136
+    add(items, nitem)
+end   
+
+function update_item()
+    for i in all(items) do 
+        i.x -= x_velocity
+        if(collide_object(i)) then 
+            del(items, i)
+        end
+    end
+end
+
+function collide_object(i)
+    if flr(i.x) != horse.x + horse.w then return false end
+
+    if i.y > horse.y or i.y < horse.y + horse.h then
+    if i.y + i.h > horse.y or i.y + i.h < horse.y + horse.h then return false end end
+
+    return true
 end
 
 function _update()
     accelerate()
     stretch_input()
+    update_item()
     height = mid(min_height, height + y_velocity, max_height) 
     if(height != max_height) then
         y_velocity += gravity
@@ -105,6 +159,18 @@ function draw_horse()
     spr(19, 12, height+1-length, 1, 1) -- Head
 end
 
+function draw_items()
+    for i in all(items) do 
+        spr_out(i.spr, i.x, i.y, 1, 1)
+        spr(i.spr, i.x, i.y)
+        -- draw_hitbox(i)
+    end
+end
+
+function draw_hitbox(object)
+    rectfill(object.x, object.y, object.x + object.w, object.y + object.h)
+end
+
 function spr_out(n,x,y,w,h,col_outline,flip_x,flip_y)
     col_outline = col_outline or 1
 
@@ -115,7 +181,9 @@ function spr_out(n,x,y,w,h,col_outline,flip_x,flip_y)
   -- draw outline
   for xx=-1,1 do
     for yy=-1,1 do
-      spr(n,x+xx,y+yy,w,h,flip_x,flip_y)
+        if(xx != yy) and (xx != -yy) then
+            spr(n,x+xx,y+yy,w,h,flip_x,flip_y)
+        end
     end
   end
   -- reset palette
@@ -125,18 +193,18 @@ function spr_out(n,x,y,w,h,col_outline,flip_x,flip_y)
 end
 
 function _draw()
-
-
-
     --poke(0x5f2c, 3) -- 64x64
     animate_horse()
     cls(12)
+    draw_items()
     draw_horse()
     map(0, 0, x_position, 0, 32, 32)
     print(x_velocity)
     print(timer,0,8)
+    print(debug,0,16)
     poke( 0x5f2e, 1 )
     pal( 12, 140, 1 )
+    --draw_hitbox(horse)
     
 end
 
