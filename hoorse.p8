@@ -19,6 +19,7 @@ function _init()
 
     x_position = 0
     x_velocity = 0.5
+    over_velocity = 0
     x_acceleration = 0.003
     max_x_velocity = 6
 
@@ -42,9 +43,9 @@ function _init()
 
     horse = {x = 4, y = 40, w = 16, h = 16}
 
-    carrot = {spr = 12, effect = "perm", effect = 0.5, w = 2, h = 4}
-    apple = {spr = 13, effect = "temp", effect = 1, w = 2, h = 4}
-    cash = {spr = 14, effect = "points", effect = 0.5, w = 2, h = 4}
+    carrot = {spr = 12, effect = "perm", value = 0.5, w = 4, h = 6}
+    apple = {spr = 13, effect = "temp", value = 2.5, w = 4, h = 8}
+    cash = {spr = 14, effect = "points", value = 0.5, w = 4, h = 4}
 
     create_item(carrot, 40)
     create_item(apple, 30)
@@ -64,13 +65,14 @@ function stretch_input()
         length = mid(min_length, length - 1.5, max_length) 
     end
 
-    horse.y = height + 16
+    horse.y = height+1-length
     horse.h = -13 - length
 end
 
 function accelerate()
     x_velocity += x_acceleration
     x_velocity = mid(0, x_velocity, max_x_velocity)
+    over_velocity = mid(0, over_velocity - 0.024, 100)
 end
 
 -- function create_item(nx, ny, nspr, ntype, neffect)
@@ -85,18 +87,28 @@ end
 
 function update_item()
     for i in all(items) do 
-        i.x -= x_velocity
+        i.x -= (x_velocity + over_velocity)
         if(collide_object(i)) then 
+            item_effect(i)
             del(items, i)
         end
     end
 end
 
-function collide_object(i)
-    if flr(i.x) != horse.x + horse.w then return false end
+function item_effect(i)
+    if(i.effect == "perm") then x_velocity += i.value end
+    if(i.effect == "temp") then over_velocity += i.value end
+end
 
-    if i.y > horse.y or i.y < horse.y + horse.h then
-    if i.y + i.h > horse.y or i.y + i.h < horse.y + horse.h then return false end end
+function collide_object(i)
+    debug = i.y .. " vs " .. horse.y
+    if flr(i.x) > horse.x + horse.w or flr(i.x+i.w) < horse.x + horse.w/2 then return false end
+
+    --if i.x > horse.x + horse.w or i.x+i.w < horse.x + horse.w/2 then return false end
+    --if i.y < horse.y or i.y + i.h > horse.y + horse.h then return false end
+    if i.y < horse.y or i.y + i.h > height + 8 then return false end
+
+    
 
     return true
 end
@@ -112,7 +124,7 @@ function _update()
         y_velocity = 0
     end
 
-    x_position -= x_velocity
+    x_position -= x_velocity + over_velocity
     if x_position < -64 then 
         x_position = 0
     end
